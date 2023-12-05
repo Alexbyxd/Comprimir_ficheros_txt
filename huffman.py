@@ -4,168 +4,199 @@ import heapq
 import os
 
 
-class HuffmanCoding:
-    """ Clase para operaciones de codificacion y decodificaion Huffman"""
-    def __init__(self, path):
-        self.path = path
+class CodigoHuffman:
+    """Clase para operaciones de codificacion y decodificaion Huffman"""
+
+    def __init__(self, ruta):
+        self.ruta = ruta  # tomara el valor de la ruta
         self.heap = []
-        self.codes = {}
-        self.reverse_mapping = {}
+        self.codigo = {}  # iniciar codigo vacio
+        self.mapa = {}  # iniciar mapa vacio
 
-    class HeapNode:
-        """Clase que inicializa el nodo principal"""
+    class NodoHeap:
+        """Clase que inicializa el nodo de monticulo principal"""
 
-        def __init__(self, char, freq):
+        def __init__(self, char, frecuencia):
             self.char = char
-            self.freq = freq
-            self.left = None
-            self.right = None
+            self.frecuencia = frecuencia
+            self.izq = None
+            self.der = None
 
         # definimos los comparadores
-        def __lt__(self, other):
-            return self.freq < other.freq
+        def __lt__(self, otro):
+            # comparamos las freciencias
+            return self.frecuencia < otro.frecuencia
 
-        def __eq__(self, other):
-            if other == None:
+        # compara las instancias
+        def __eq__(self, otro):
+            if otro == None:
                 return False
-            if not isinstance(other, HeapNode):
+            if not isinstance(otro, NodoHeap):
                 return False
-            return self.freq == other.freq
+            return self.frecuencia == otro.frecuencia
 
-    # funciones de compresion  
-    def make_frequency_dict(self, text):
-        """Funcion que determina la frecuencia"""
-        frequency = {}
-        for character in text:
-            if not character in frequency:
-                frequency[character] = 0
-            frequency[character] += 1
-        return frequency
+    # funciones de compresion
+    def diccionario_frec(self, texto):
+        """Funcion que crea el diccionario de las frecuencia"""
+        frecuencia = {}
+        for caracter in texto:
+            if not caracter in frecuencia:
+                frecuencia[caracter] = 0
+            frecuencia[caracter] += 1
+        return frecuencia
 
-    def make_heap(self, frequency):
-        for key in frequency:
-            node = self.HeapNode(key, frequency[key])
-            heapq.heappush(self.heap, node)
+    def hacer_heap(self, frecuencia):
+        """Creamos los heap de nodos"""
+        for key in frecuencia:
+            nodo = self.NodoHeap(key, frecuencia[key])
+            heapq.heappush(self.heap, nodo)
 
-    def merge_nodes(self):
+    def fusionar_nodos(self):
+        """Funcion para fusionar los nodos heap"""
         while len(self.heap) > 1:
-            node1 = heapq.heappop(self.heap)
-            node2 = heapq.heappop(self.heap)
+            nodo1 = heapq.heappop(self.heap)
+            nodo2 = heapq.heappop(self.heap)
 
-            merged = self.HeapNode(None, node1.freq + node2.freq)
-            merged.left = node1
-            merged.right = node2
+            fusionado = self.NodoHeap(None, nodo1.frecuencia + nodo2.frecuencia)
+            fusionado.izq = nodo1
+            fusionado.der = nodo2
 
-            heapq.heappush(self.heap, merged)
+            heapq.heappush(self.heap, fusionado)
 
-    def make_codes_helper(self, root, current_code):
-        if root == None:
+    def generar_cod_huffman(self, nodo_actual, codigo_actual):
+        """Funcion para generar el codigo huffman"""
+        if nodo_actual == None:
             return
 
-        if root.char != None:
-            self.codes[root.char] = current_code
-            self.reverse_mapping[current_code] = root.char
+        if nodo_actual.char != None:
+            self.codigo[nodo_actual.char] = codigo_actual
+            self.mapa[codigo_actual] = nodo_actual.char
             return
 
-        self.make_codes_helper(root.left, current_code + "0")
-        self.make_codes_helper(root.right, current_code + "1")
+        self.generar_cod_huffman(nodo_actual.izq, codigo_actual + "0")
+        self.generar_cod_huffman(nodo_actual.der, codigo_actual + "1")
 
-    def make_codes(self):
-        root = heapq.heappop(self.heap)
-        current_code = ""
-        self.make_codes_helper(root, current_code)
+    def hacer_codigo(self):
+        """Inicializamos el cod huffman"""
+        nodo_actual = heapq.heappop(self.heap)
+        codigo_actual = ""
+        self.generar_cod_huffman(nodo_actual, codigo_actual)
 
-    def get_encoded_text(self, text):
-        encoded_text = ""
-        for character in text:
-            encoded_text += self.codes[character]
-        return encoded_text
+    def codificar_texo(self, texto):
+        """Funcion para tomar un texto y codificarlo"""
+        texto_codificado = ""
+        for caracter in texto:
+            texto_codificado += self.codigo[caracter]
+        return texto_codificado
 
-    def pad_encoded_text(self, encoded_text):
-        extra_padding = 8 - len(encoded_text) % 8
-        for i in range(extra_padding):
-            encoded_text += "0"
+    def imprimir_codigo_huffman(self):
+        """Funcion para imprimir codigo"""
+        print("Codigos de Huffman:")
+        for char, code in self.codigo.items():
+            print(f"Caracter: {char}, Codigo: {code}")
 
-        padded_info = "{0:08b}".format(extra_padding)
-        encoded_text = padded_info + encoded_text
-        return encoded_text
+    def mostrar_byte(self, texto_original, texto_comprimido):
+        print("\nBytes iniciales")
+        bytes_iniciales = [ord(byte) for byte in texto_original]
+        print(f"Total de bytes iniciales: {len(bytes_iniciales)} bytes")
+        print("\nBytes comprimidos")
+        bytes_comprimidos = [byte for byte in texto_comprimido]
+        print(f"Total de bytes comprimidos: {len(bytes_comprimidos)}  bytes")
+        print("--------------------------------------------------------------")
 
-    def get_byte_array(self, padded_encoded_text):
-        if len(padded_encoded_text) % 8 != 0:
+    def rellenar_codigo(self, texto_codificado):
+        """Funcion para rellenar y hacerlo multiplo de 8"""
+        relleno_extra = 8 - len(texto_codificado) % 8
+        for i in range(relleno_extra):
+            texto_codificado += "0"
+
+        relleno_info = "{0:08b}".format(relleno_extra)
+        texto_codificado = relleno_info + texto_codificado
+        return texto_codificado
+
+    def convertir_byte_array(self, texto_codificado):
+        """Funcion para convertir a array byte"""
+        if len(texto_codificado) % 8 != 0:
             print("Texto codificado con relleno incorrecto")
             exit(0)
 
         b = bytearray()
-        for i in range(0, len(padded_encoded_text), 8):
-            byte = padded_encoded_text[i : i + 8]
+        for i in range(0, len(texto_codificado), 8):
+            byte = texto_codificado[i : i + 8]
             b.append(int(byte, 2))
         return b
 
-    def compress(self):
-        filename, file_extension = os.path.splitext(self.path)
-        output_path = filename + ".bin"
+    def comprimido(self):
+        """Funcion para implementar cod. Huffman"""
+        nombreArchivo, file_extension = os.path.splitext(self.ruta)
+        salida = nombreArchivo + ".bin"
 
-        with open(self.path, "r+") as file, open(output_path, "wb") as output:
-            text = file.read()
+        with open(self.ruta, "r+") as archivo, open(salida, "wb") as output:
+            text = archivo.read()
             text = text.rstrip()
 
-            frequency = self.make_frequency_dict(text)
-            self.make_heap(frequency)
-            self.merge_nodes()
-            self.make_codes()
+            frequency = self.diccionario_frec(text)
+            self.hacer_heap(frequency)
+            self.fusionar_nodos()
+            self.hacer_codigo()
+            self.imprimir_codigo_huffman()
 
-            encoded_text = self.get_encoded_text(text)
-            padded_encoded_text = self.pad_encoded_text(encoded_text)
+            encoded_text = self.codificar_texo(text)
+            padded_encoded_text = self.rellenar_codigo(encoded_text)
 
-            b = self.get_byte_array(padded_encoded_text)
+            b = self.convertir_byte_array(padded_encoded_text)
             output.write(bytes(b))
 
+            texto_original = text.encode("utf-8")
+            texto_comprimido = bytes(b)
+
+            self.mostrar_byte((texto_original.decode("utf-8")), texto_comprimido)
+
         print("Comprimido")
-        return output_path
+        return salida
 
-    # funciones para descomprimir
+    def remover_relleno(self, texto_codificado):
+        """Funcionpara remover el relleno de la codificacion"""
+        relleno_info = texto_codificado[:8]
+        relleno_extra = int(relleno_info, 2)
 
-    def remove_padding(self, padded_encoded_text):
-        padded_info = padded_encoded_text[:8]
-        extra_padding = int(padded_info, 2)
+        texto_codificado = texto_codificado[8:]
+        texto_cod = texto_codificado[: -1 * relleno_extra]
 
-        padded_encoded_text = padded_encoded_text[8:]
-        encoded_text = padded_encoded_text[: -1 * extra_padding]
+        return texto_cod
 
-        return encoded_text
+    def decodificar_texto(self, texto_codificado):
+        """Funcion para decodificar el texto"""
+        codigo_actual = ""
+        texto_codificado = ""
+        for bit in texto_codificado:
+            codigo_actual += bit
+            if codigo_actual in self.mapa:
+                caracter = self.mapa[codigo_actual]
+                texto_codificado += caracter
+                codigo_actual = ""
 
-    def decode_text(self, encoded_text):
-        current_code = ""
-        decoded_text = ""
+        return texto_codificado
 
-        for bit in encoded_text:
-            current_code += bit
-            if current_code in self.reverse_mapping:
-                character = self.reverse_mapping[current_code]
-                decoded_text += character
-                current_code = ""
+    def descomprimir(self, ruta_entrada):
+        nombre_archivo, file_extension = os.path.splitext(self.ruta)
+        ruta_salida = nombre_archivo + "_descomprimido" + ".txt"
 
-        return decoded_text
+        with open(ruta_entrada, "rb") as archivo, open(ruta_salida, "w") as output:
+            bit_cadena = ""
 
-    def decompress(self, input_path):
-        filename, file_extension = os.path.splitext(self.path)
-        output_path = filename + "_descomprimido" + ".txt"
-
-        with open(input_path, "rb") as file, open(output_path, "w") as output:
-            bit_string = ""
-
-            byte = file.read(1)
+            byte = archivo.read(1)
             while len(byte) > 0:
                 byte = ord(byte)
                 bits = bin(byte)[2:].rjust(8, "0")
-                bit_string += bits
-                byte = file.read(1)
+                bit_cadena += bits
+                byte = archivo.read(1)
 
-            encoded_text = self.remove_padding(bit_string)
+            texto_codificado = self.remover_relleno(bit_cadena)
 
-            decompressed_text = self.decode_text(encoded_text)
+            texto_descomprimido = self.decodificar_texto(texto_codificado)
 
-            output.write(decompressed_text)
+            output.write(texto_descomprimido)
 
         print("Descomprimido")
-        return output_path
+        return ruta_salida

@@ -1,12 +1,18 @@
-from huffman import HuffmanCoding
+"""
+PROYECTO INF 2610
+COMPRESION DE FICHEROS
+Autor: Baltazar Castellón Alex
+"""
+
+
+from huffman import CodigoHuffman
 import sys
 
-path = "sample.txt"
+entrada = "sample.txt"
 
-h = HuffmanCoding(path)
+h = CodigoHuffman(entrada)
+ruta_salida = h.comprimido()
+print("El archivo comprimido esta en: " + ruta_salida)
 
-output_path = h.compress()
-print("El archivo comprimido esta en: " + output_path)
-
-decom_path = h.decompress(output_path)
-print("El archivo descomprimido esta en: " + decom_path)
+ruta_descom_salida = h.descomprimir(ruta_salida)
+print("El archivo descomprimido esta en: " + ruta_descom_salida)
